@@ -31,7 +31,7 @@ function minifiedScripts() {
     // 'node_modules/swiper/swiper-bundle.js', // если понадобится много файлов js подключать
     'app/js/main.js'
     
-    // 'app/js/*.js',
+    // 'app/js/**/*.js',
     // '!app/js/main.min.js'
   ]) // откуда берем js файлы
     .pipe(concat('main.min.js')) // переименовываем файл
