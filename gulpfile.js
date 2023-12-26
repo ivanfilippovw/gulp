@@ -1,10 +1,13 @@
-const { src, dest, watch, parallel } = require('gulp');
+const { src, dest, watch, parallel, series } = require('gulp');
 
 const scss = require('gulp-sass')(require('sass'));
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify-es').default;
 const browserSync = require('browser-sync').create();
-const autoprefixer = require('gulp-autoprefixer');
+// const autoprefixer = require('gulp-autoprefixer');
+// import gulp from 'gulp';
+// import autoprefixer from 'gulp-autoprefixer';
+const clean = require('gulp-clean');
 
 // Функция задачи, создания не минифицированного CSS файла
 // function styles() {
@@ -18,7 +21,9 @@ const autoprefixer = require('gulp-autoprefixer');
 // Функция задачи создания минифицированного CSS файла
 function minifiedStyles() {
   return src('app/scss/style.scss') // откуда берем scss файлы
-    .pipe(autoprefixer({ overrideBrowserslist: ['last 3 version'] })) // добавялем вендорные префиксы
+    //.pipe(autoprefixer({
+    //  overrideBrowserslist: ['last 3 version']
+    // })) // добавялем вендорные префиксы
     .pipe(concat('style.min.css')) // переименовываем файл
     .pipe(scss({ outputStyle: 'compressed' })) // конвертируем и минифицируем scss в css
     .pipe(dest('app/css')) // где создаем новый css файл
@@ -30,10 +35,10 @@ function minifiedScripts() {
   return src([
     // 'node_modules/swiper/swiper-bundle.js', // если понадобится много файлов js подключать
     'app/js/main.js'
-    
+
     // 'app/js/**/*.js',
     // '!app/js/main.min.js'
-  ]) // откуда берем js файлы
+    ]) // откуда берем js файлы
     .pipe(concat('main.min.js')) // переименовываем файл
     .pipe(uglify()) // минифицируем js
     .pipe(dest('app/js')) // где создаем новый js файл
@@ -56,9 +61,27 @@ function browsersync() {
   });
 }
 
-exports.minifiedScripts = minifiedScripts;
+// Функция задачи удаления папки dist
+function cleanDist() {
+  return src('dist')
+    .pipe(clean())
+}
+
+function building() {
+  return src([
+    'app/css/style.min.css',
+    'app/js/main.min.js',
+    'app/**/*.html'
+  ], {base : 'app'})
+  .pipe(dest('dist'))
+}
+
+
 exports.minifiedStyles = minifiedStyles;
+exports.minifiedScripts = minifiedScripts;
 exports.watching = watching;
 exports.browsersync = browsersync;
+
+exports.build = series(cleanDist, building);
 
 exports.default = parallel(minifiedStyles, minifiedScripts, browsersync, watching);
