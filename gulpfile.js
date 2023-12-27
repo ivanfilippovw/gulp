@@ -4,7 +4,7 @@ const scss = require('gulp-sass')(require('sass'));
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify-es').default;
 const browserSync = require('browser-sync').create();
-// const autoprefixer = require('gulp-autoprefixer');
+// const autoprefixer = require('gulp-autoprefixer'); // 8.0.0 надо
 // import gulp from 'gulp';
 // import autoprefixer from 'gulp-autoprefixer';
 const clean = require('gulp-clean');
@@ -45,20 +45,16 @@ function minifiedScripts() {
     .pipe(browserSync.stream()) // перезагрузка страницы после изменений
 }
 
-// Функция задачи, чтобы следить за изменениями в файле
+// Функция задачи, чтобы следить за изменениями в файле и перезагружать страницу
 function watching() {
-  watch(['app/scss/style.scss'], minifiedStyles) // следим если есть изменения в style.scss, то запускаем задачу minifiedStyles
-  watch(['app/js/main.js'], minifiedScripts) // следим если есть изменения в main.js, то запускаем задачу minifiedScripts
-  watch(['app/**/*.html']).on('change', browserSync.reload) // следим если есть изменений в любом html файле, то перезагружаем страницу
-}
-
-// Функция задачи, которая перезагружает страницу
-function browsersync() {
   browserSync.init({
     server: {
       baseDir: "app/"
     }
   });
+  watch(['app/scss/style.scss'], minifiedStyles) // следим если есть изменения в style.scss, то запускаем задачу minifiedStyles
+  watch(['app/js/main.js'], minifiedScripts) // следим если есть изменения в main.js, то запускаем задачу minifiedScripts
+  watch(['app/**/*.html']).on('change', browserSync.reload) // следим если есть изменений в любом html файле, то перезагружаем страницу
 }
 
 // Функция задачи удаления папки dist
@@ -80,8 +76,6 @@ function building() {
 exports.minifiedStyles = minifiedStyles;
 exports.minifiedScripts = minifiedScripts;
 exports.watching = watching;
-exports.browsersync = browsersync;
 
 exports.build = series(cleanDist, building);
-
-exports.default = parallel(minifiedStyles, minifiedScripts, browsersync, watching);
+exports.default = parallel(minifiedStyles, minifiedScripts, watching);
