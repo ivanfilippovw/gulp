@@ -8,6 +8,30 @@ const browserSync = require('browser-sync').create();
 // import gulp from 'gulp';
 // import autoprefixer from 'gulp-autoprefixer';
 const clean = require('gulp-clean');
+const avif = require('gulp-avif');
+const webp = require('gulp-webp');
+const imagemin = require('gulp-imagemin');
+const newer = require('gulp-newer');
+
+function images() {
+  return src([
+    'app/images/src/**/*.*',
+    '!app/images/src/*.svg'
+  ])
+
+    .pipe(newer('app/images/dist'))
+    .pipe(avif({ quality: 50 }))
+
+    .pipe(src('app/images/src/**/*.*'))
+    .pipe(newer('app/images/dist'))
+    .pipe(webp())
+
+    .pipe(src('app/images/src/**/*.*'))
+    .pipe(newer('app/images/dist'))
+    .pipe(imagemin())
+
+    .pipe(dest('app/images/dist'))
+}
 
 // Функция задачи, создания не минифицированного CSS файла
 // function styles() {
@@ -52,6 +76,7 @@ function watching() {
       baseDir: "app/"
     }
   });
+  watch(['app/images/src'], images) // следим если есть изменения в папке src, то запускаем задачу images
   watch(['app/scss/style.scss'], minifiedStyles) // следим если есть изменения в style.scss, то запускаем задачу minifiedStyles
   watch(['app/js/main.js'], minifiedScripts) // следим если есть изменения в main.js, то запускаем задачу minifiedScripts
   watch(['app/**/*.html']).on('change', browserSync.reload) // следим если есть изменений в любом html файле, то перезагружаем страницу
@@ -65,6 +90,7 @@ function cleanDist() {
 
 function building() {
   return src([
+    'app/images/dist/**/*.*',
     'app/css/style.min.css',
     'app/js/main.min.js',
     'app/**/*.html'
@@ -72,10 +98,10 @@ function building() {
   .pipe(dest('dist'))
 }
 
-
+exports.images = images;
 exports.minifiedStyles = minifiedStyles;
 exports.minifiedScripts = minifiedScripts;
 exports.watching = watching;
 
 exports.build = series(cleanDist, building);
-exports.default = parallel(minifiedStyles, minifiedScripts, watching);
+exports.default = parallel(images, minifiedStyles, minifiedScripts, watching);
