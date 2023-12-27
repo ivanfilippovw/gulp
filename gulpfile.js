@@ -102,10 +102,14 @@ function cleanDist() {
 
 function building() {
   return src([
+    'app/fonts/*.*',
     'app/images/dist/**/*.*',
+    '!app/images/dist/**/*.svg',
+    '!app/images/dist/svg/stack/*.*',
+    'app/images/dist/svg/sprite.svg',
     'app/css/style.min.css',
     'app/js/main.min.js',
-    'app/**/*.html'
+    'app/*.html'
   ], {base : 'app'})
   .pipe(dest('dist'))
 }
