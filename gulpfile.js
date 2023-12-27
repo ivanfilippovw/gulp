@@ -13,6 +13,7 @@ const webp = require('gulp-webp');
 const imagemin = require('gulp-imagemin');
 const newer = require('gulp-newer');
 const svgSprite = require('gulp-svg-sprite');
+const include = require('gulp-include');
 
 // Функция задачи для изменения формата изначальных картинок и уменьшения их веса
 function images() {
@@ -81,6 +82,16 @@ function minifiedScripts() {
     .pipe(browserSync.stream()) // перезагрузка страницы после изменений
 }
 
+// Функция задачи сборки компонентов html в страницы
+function pages() {
+  return src('app/pages/*.html')
+    .pipe(include({
+      includePaths: 'app/components'
+    }))
+    .pipe(dest('app'))
+    .pipe(browserSync.stream()) // перезагрузка страницы после изменений
+}
+
 // Функция задачи, чтобы следить за изменениями в файле и перезагружать страницу
 function watching() {
   browserSync.init({
@@ -91,6 +102,7 @@ function watching() {
   watch(['app/images/src'], images) // следим если есть изменения в папке src, то запускаем задачу images
   watch(['app/scss/style.scss'], minifiedStyles) // следим если есть изменения в style.scss, то запускаем задачу minifiedStyles
   watch(['app/js/main.js'], minifiedScripts) // следим если есть изменения в main.js, то запускаем задачу minifiedScripts
+  watch(['app/components/*.*', 'app/pages/*.*'], pages)
   watch(['app/**/*.html']).on('change', browserSync.reload) // следим если есть изменений в любом html файле, то перезагружаем страницу
 }
 
@@ -116,9 +128,10 @@ function building() {
 
 exports.images = images;
 exports.sprite = sprite;
+exports.pages = pages;
 exports.minifiedStyles = minifiedStyles;
 exports.minifiedScripts = minifiedScripts;
 exports.watching = watching;
 
 exports.build = series(cleanDist, building);
-exports.default = parallel(images, sprite, minifiedStyles, minifiedScripts, watching);
+exports.default = parallel(images, minifiedStyles, minifiedScripts, pages, watching);
