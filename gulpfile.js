@@ -12,13 +12,11 @@ const avif = require('gulp-avif');
 const webp = require('gulp-webp');
 const imagemin = require('gulp-imagemin');
 const newer = require('gulp-newer');
+const svgSprite = require('gulp-svg-sprite');
 
+// Функция задачи для изменения формата изначальных картинок и уменьшения их веса
 function images() {
-  return src([
-    'app/images/src/**/*.*',
-    '!app/images/src/*.svg'
-  ])
-
+  return src(['app/images/src/**/*.*', '!app/images/src/**/*.svg'])
     .pipe(newer('app/images/dist'))
     .pipe(avif({ quality: 50 }))
 
@@ -31,6 +29,20 @@ function images() {
     .pipe(imagemin())
 
     .pipe(dest('app/images/dist'))
+}
+
+// Функция задачи, которая делает из уже уменьшенных по весу svg иконок sprite (stack)
+function sprite() {
+  return src('app/images/dist/svg/*.svg')
+    .pipe(svgSprite({
+      mode: {
+        stack: {
+          sprite: '../sprite.svg',
+          example: true
+        }
+      }
+    }))
+    .pipe(dest('app/images/dist/svg'))
 }
 
 // Функция задачи, создания не минифицированного CSS файла
@@ -99,9 +111,10 @@ function building() {
 }
 
 exports.images = images;
+exports.sprite = sprite;
 exports.minifiedStyles = minifiedStyles;
 exports.minifiedScripts = minifiedScripts;
 exports.watching = watching;
 
 exports.build = series(cleanDist, building);
-exports.default = parallel(images, minifiedStyles, minifiedScripts, watching);
+exports.default = parallel(images, sprite, minifiedStyles, minifiedScripts, watching);
